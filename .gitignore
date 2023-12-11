@@ -1,0 +1,10 @@
+# runtime
+run/
+
+# ide
+.gradle/
+.idea/
+
+# output
+build/
+out/

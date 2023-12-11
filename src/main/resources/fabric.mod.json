@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "id": "questcraft",
+  "version": "1.0.0",
+  "name": "questcraft",
+  "description": "",
+  "authors": [],
+  "contact": {
+    "repo": "https://github.com/kr8gz/QuestCraft"
+  },
+  "license": "All-Rights-Reserved",
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "io.github.kr8gz.questcraft.QuestCraft"
+    ]
+  },
+  "depends": {
+    "fabricloader": ">=0.15.1",
+    "fabric": "*",
+    "minecraft": "1.20.1"
+  }
+}
