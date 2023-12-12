@@ -7,20 +7,25 @@ import org.jetbrains.annotations.NotNull;
 import java.util.*;
 import java.util.function.BiFunction;
 
-public class PlayerData {
+public class PlayerState {
     private final Set<Entry<?>> entries = new HashSet<>();
+    private final StateManager stateManager;
+
+    public PlayerState(StateManager stateManager) {
+        this.stateManager = stateManager;
+    }
 
     public class Entry<T> {
         private final String key;
-        private final T initialValue;
+        private final T defaultValue;
         private T value;
 
         private final TriConsumer<NbtCompound, String, T> writer;
         private final BiFunction<NbtCompound, String, T> reader;
 
-        Entry(String key, T initialValue, TriConsumer<NbtCompound, String, T> writer, BiFunction<NbtCompound, String, T> reader) {
+        Entry(String key, T defaultValue, TriConsumer<NbtCompound, String, T> writer, BiFunction<NbtCompound, String, T> reader) {
             this.key = key;
-            this.value = this.initialValue = initialValue;
+            this.value = this.defaultValue = defaultValue;
 
             this.writer = writer;
             this.reader = reader;
@@ -34,6 +39,7 @@ public class PlayerData {
 
         public void set(@NotNull T value) {
             this.value = Objects.requireNonNull(value, "NBT data must not be null");
+            stateManager.markDirty();
         }
 
         void writeNbt(NbtCompound tag) {
@@ -41,7 +47,7 @@ public class PlayerData {
         }
 
         void readNbt(NbtCompound tag) {
-            value = tag.contains(key) ? reader.apply(tag, key) : initialValue;
+            value = tag.contains(key) ? reader.apply(tag, key) : defaultValue;
         }
     }
 
@@ -53,12 +59,12 @@ public class PlayerData {
         return tag;
     }
 
-    public static PlayerData fromNbt(NbtCompound tag) {
-        var playerData = new PlayerData();
-        for (Entry<?> entry : playerData.entries) {
+    public static PlayerState fromNbt(StateManager stateManager, NbtCompound tag) {
+        var playerState = new PlayerState(stateManager);
+        for (Entry<?> entry : playerState.entries) {
             entry.readNbt(tag);
         }
-        return playerData;
+        return playerState;
     }
 
     public Entry<String> task = new Entry<>("task", "", NbtCompound::putString, NbtCompound::getString);

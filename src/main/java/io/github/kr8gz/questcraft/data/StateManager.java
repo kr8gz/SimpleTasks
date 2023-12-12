@@ -17,34 +17,36 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class StateManager extends PersistentState {
-    public HashMap<UUID, PlayerData> players = new HashMap<>();
+    private final HashMap<UUID, PlayerState> playerStates = new HashMap<>();
 
     @Override
     public NbtCompound writeNbt(NbtCompound nbt) {
         var playersNbt = new NbtCompound();
 
-        players.forEach((uuid, playerData) -> playersNbt.put(uuid.toString(), playerData.toNbt()));
+        playerStates.forEach((uuid, playerState) -> playersNbt.put(uuid.toString(), playerState.toNbt()));
         nbt.put("players", playersNbt);
 
         return nbt;
     }
 
     public static StateManager fromNbt(NbtCompound nbt) {
-        var state = new StateManager();
+        var stateManager = new StateManager();
         var playersNbt = nbt.getCompound("players");
-        
-        playersNbt.getKeys().forEach(key -> {
-            var playerData = PlayerData.fromNbt(playersNbt.getCompound(key));
-            state.players.put(UUID.fromString(key), playerData);
-        });
 
-        return state;
+        for (var key : playersNbt.getKeys()) {
+            var playerState = PlayerState.fromNbt(stateManager, playersNbt.getCompound(key));
+            stateManager.playerStates.put(UUID.fromString(key), playerState);
+        }
+
+        return stateManager;
     }
 
     public static Set<GameProfile> getAllServerProfiles(MinecraftServer server) {
         var userCache = Objects.requireNonNull(server.getUserCache());
-        try (var pathStream = Files.list(server.getSavePath(WorldSavePath.STATS))) {
-            return pathStream
+
+        // using STATS path instead of PLAYERDATA, since the latter contains an additional backup file for each player
+        try (var playerFilePaths = Files.list(server.getSavePath(WorldSavePath.STATS))) {
+            return playerFilePaths
                     .map(Path::toFile)
                     .map(File::getName)
                     .map(FilenameUtils::removeExtension)
@@ -61,13 +63,11 @@ public class StateManager extends PersistentState {
 
     public static StateManager getServerState(MinecraftServer server) {
         var world = Objects.requireNonNull(server.getWorld(World.OVERWORLD));
-        var state = world.getPersistentStateManager().getOrCreate(StateManager::fromNbt, StateManager::new, QuestCraft.MOD_ID);
-
-        state.markDirty();
-        return state;
+        return world.getPersistentStateManager().getOrCreate(StateManager::fromNbt, StateManager::new, QuestCraft.MOD_ID);
     }
 
-    public static PlayerData getPlayerState(MinecraftServer server, UUID uuid) {
-        return getServerState(server).players.computeIfAbsent(uuid, u -> new PlayerData());
+    public static PlayerState getPlayerState(MinecraftServer server, UUID uuid) {
+        var stateManager = getServerState(server);
+        return stateManager.playerStates.computeIfAbsent(uuid, id -> new PlayerState(stateManager));
     }
 }
