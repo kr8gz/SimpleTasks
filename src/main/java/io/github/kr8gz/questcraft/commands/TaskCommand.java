@@ -98,9 +98,8 @@ public class TaskCommand {
     }
 
     private static void notifyTargetPlayer(@Nullable PlayerEntity targetPlayer, PlayerState playerState) {
-        if (targetPlayer == null) { // player offline
-            playerState.hasSeenTask.set(false);
-        } else {
+        var isPlayerOnline = targetPlayer != null;
+        if (isPlayerOnline) {
             if (playerState.task.get().isEmpty()) {
                 targetPlayer.sendMessage(Text.literal("Your task was cleared.").formatted(Formatting.YELLOW));
                 targetPlayer.playSound(SoundEvents.BLOCK_NOTE_BLOCK_HARP.value(), SoundCategory.MASTER, 1.0f, 2.0f);
@@ -110,6 +109,8 @@ public class TaskCommand {
                 targetPlayer.playSound(SoundEvents.BLOCK_CONDUIT_ACTIVATE, SoundCategory.MASTER, 1.0f, 1.0f);
             }
         }
+
+        playerState.hasSeenTask.set(isPlayerOnline);
     }
 
     private int errorMessage(String message) {
