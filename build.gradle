@@ -33,7 +33,7 @@ shadowJar {
     archiveClassifier = 'shadow'
     minimize()
 
-    relocationPrefix 'io.github.kr8gz.questcraft.libs'
+    relocationPrefix 'io.github.kr8gz.simpletasks.libs'
     relocate 'com.electronwill', "${relocationPrefix}.com.electronwill"
 }
 

@@ -1,18 +1,18 @@
 {
   "schemaVersion": 1,
-  "id": "questcraft",
+  "id": "simple_tasks",
   "version": "1.0.0",
-  "name": "questcraft",
+  "name": "SimpleTasks",
   "description": "",
   "authors": [],
   "contact": {
-    "repo": "https://github.com/kr8gz/QuestCraft"
+    "repo": "https://github.com/kr8gz/SimpleTasks"
   },
   "license": "All-Rights-Reserved",
   "environment": "*",
   "entrypoints": {
     "main": [
-      "io.github.kr8gz.questcraft.QuestCraft"
+      "io.github.kr8gz.simpletasks.SimpleTasks"
     ]
   },
   "depends": {

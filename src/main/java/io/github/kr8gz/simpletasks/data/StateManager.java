@@ -1,7 +1,7 @@
-package io.github.kr8gz.questcraft.data;
+package io.github.kr8gz.simpletasks.data;
 
 import com.mojang.authlib.GameProfile;
-import io.github.kr8gz.questcraft.QuestCraft;
+import io.github.kr8gz.simpletasks.SimpleTasks;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.WorldSavePath;
@@ -17,7 +17,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class StateManager extends PersistentState {
-    private final HashMap<UUID, PlayerState> playerStates = new HashMap<>();
+    public final HashMap<UUID, PlayerState> playerStates = new HashMap<>();
 
     @Override
     public NbtCompound writeNbt(NbtCompound nbt) {
@@ -56,14 +56,14 @@ public class StateManager extends PersistentState {
                     .map(Optional::get)
                     .collect(Collectors.toSet());
         } catch (IOException e) {
-            QuestCraft.LOGGER.error("Exception while getting server game profiles:", e);
+            SimpleTasks.LOGGER.error("Exception while getting server game profiles:", e);
             throw new RuntimeException(e);
         }
     }
 
     public static StateManager getServerState(MinecraftServer server) {
         var world = Objects.requireNonNull(server.getWorld(World.OVERWORLD));
-        return world.getPersistentStateManager().getOrCreate(StateManager::fromNbt, StateManager::new, QuestCraft.MOD_ID);
+        return world.getPersistentStateManager().getOrCreate(StateManager::fromNbt, StateManager::new, SimpleTasks.MOD_ID);
     }
 
     public static PlayerState getPlayerState(MinecraftServer server, UUID uuid) {

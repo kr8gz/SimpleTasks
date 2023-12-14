@@ -1,13 +1,13 @@
-package io.github.kr8gz.questcraft;
+package io.github.kr8gz.simpletasks;
 
-import io.github.kr8gz.questcraft.commands.TaskCommand;
+import io.github.kr8gz.simpletasks.commands.TaskCommand;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-public class QuestCraft implements ModInitializer {
-    public static final String MOD_ID = "questcraft";
+public class SimpleTasks implements ModInitializer {
+    public static final String MOD_ID = "simple_tasks";
     public static final Logger LOGGER = LogManager.getLogger(MOD_ID);
 
     @Override

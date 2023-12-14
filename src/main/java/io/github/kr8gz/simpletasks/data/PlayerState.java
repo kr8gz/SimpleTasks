@@ -1,4 +1,4 @@
-package io.github.kr8gz.questcraft.data;
+package io.github.kr8gz.simpletasks.data;
 
 import net.minecraft.nbt.NbtCompound;
 import org.apache.logging.log4j.util.TriConsumer;
