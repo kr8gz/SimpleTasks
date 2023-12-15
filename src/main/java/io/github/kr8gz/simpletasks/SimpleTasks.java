@@ -1,6 +1,6 @@
 package io.github.kr8gz.simpletasks;
 
-import io.github.kr8gz.simpletasks.commands.TaskCommand;
+import io.github.kr8gz.simpletasks.command.TaskCommand;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import org.apache.logging.log4j.LogManager;
