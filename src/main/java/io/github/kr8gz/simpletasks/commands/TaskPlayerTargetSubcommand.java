@@ -15,10 +15,10 @@ import java.util.Collections;
 import static net.minecraft.server.command.CommandManager.argument;
 import static net.minecraft.server.command.CommandManager.literal;
 
-abstract class PlayerTargetCommand extends TaskCommand.Subcommand {
+abstract class TaskPlayerTargetSubcommand extends TaskCommand.Subcommand {
     static final String ARGUMENT_PLAYER = "player";
 
-    PlayerTargetCommand(String name) {
+    TaskPlayerTargetSubcommand(String name) {
         super(name);
     }
 

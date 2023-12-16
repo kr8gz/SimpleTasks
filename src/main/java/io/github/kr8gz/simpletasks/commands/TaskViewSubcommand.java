@@ -5,7 +5,7 @@ import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 
-class TaskViewSubcommand extends PlayerTargetCommand {
+class TaskViewSubcommand extends TaskPlayerTargetSubcommand {
     TaskViewSubcommand() {
         super("view");
     }

@@ -5,7 +5,7 @@ import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 
-class TaskClearSubcommand extends PlayerTargetCommand {
+class TaskClearSubcommand extends TaskPlayerTargetSubcommand {
     TaskClearSubcommand() {
         super("clear");
     }

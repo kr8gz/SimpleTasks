@@ -23,6 +23,7 @@ import java.util.stream.Collectors;
 import static net.minecraft.server.command.CommandManager.*;
 
 class TaskCommand implements CommandRegistrationCallback {
+    @Override
     public void register(CommandDispatcher<ServerCommandSource> dispatcher, CommandRegistryAccess registryAccess, CommandManager.RegistrationEnvironment environment) {
         dispatcher.register(literal("task")
                 .then(new TaskViewSubcommand().subcommandNode)

@@ -12,7 +12,7 @@ import net.minecraft.util.Formatting;
 import java.util.Collection;
 import java.util.Random;
 
-class TaskChangeSubcommand extends PlayerTargetCommand {
+class TaskChangeSubcommand extends TaskPlayerTargetSubcommand {
     SimpleTasksConfig config;
 
     TaskChangeSubcommand() {
