@@ -1,13 +1,15 @@
-package io.github.kr8gz.simpletasks.command;
+package io.github.kr8gz.simpletasks.commands;
 
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import io.github.kr8gz.simpletasks.config.SimpleTasksConfig;
-import io.github.kr8gz.simpletasks.data.PlayerState;
-import io.github.kr8gz.simpletasks.data.StateManager;
+import io.github.kr8gz.simpletasks.state.PlayerState;
+import io.github.kr8gz.simpletasks.state.StateManager;
+import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
-import net.minecraft.command.CommandException;
+import net.minecraft.command.CommandRegistryAccess;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
@@ -20,13 +22,13 @@ import java.util.stream.Collectors;
 
 import static net.minecraft.server.command.CommandManager.*;
 
-public class TaskCommand {
-    public static void register(CommandDispatcher<ServerCommandSource> dispatcher) {
+class TaskCommand implements CommandRegistrationCallback {
+    public void register(CommandDispatcher<ServerCommandSource> dispatcher, CommandRegistryAccess registryAccess, CommandManager.RegistrationEnvironment environment) {
         dispatcher.register(literal("task")
-                .then(new TaskViewSubcommand().getSubcommandNode())
-                .then(new TaskChangeSubcommand().getSubcommandNode())
-                .then(new TaskClearSubcommand().getSubcommandNode())
-                .then(new TaskListSubcommand().getSubcommandNode()));
+                .then(new TaskViewSubcommand().subcommandNode)
+                .then(new TaskChangeSubcommand().subcommandNode)
+                .then(new TaskClearSubcommand().subcommandNode)
+                .then(new TaskListSubcommand().subcommandNode));
 
         ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
             var playerState = StateManager.getPlayerState(server, handler.player.getUuid());
@@ -36,7 +38,7 @@ public class TaskCommand {
         });
     }
 
-    static void notifyPlayerTaskChanged(@Nullable PlayerEntity player, PlayerState playerState) {
+    public static void notifyPlayerTaskChanged(@Nullable PlayerEntity player, PlayerState playerState) {
         var isPlayerOnline = player != null;
         if (isPlayerOnline) {
             // TODO configurable notification sounds
@@ -52,9 +54,9 @@ public class TaskCommand {
         playerState.hasSeenTask.set(isPlayerOnline);
     }
 
-    static List<String> getAvailableTasks(ServerCommandSource source) {
-        var tasks = SimpleTasksConfig.TASKS.get();
-        if (SimpleTasksConfig.ASSIGN_UNIQUE_TASKS.get()) {
+    public static List<String> getAvailableTasks(SimpleTasksConfig config, ServerCommandSource source) {
+        var tasks = config.tasks.get();
+        if (config.assignUniqueTasks.get()) {
             var playerStates = StateManager.getServerState(source.getServer()).playerStates;
             var assignedTasks = playerStates.values().stream()
                     .map(playerState -> playerState.task.get())
@@ -65,23 +67,13 @@ public class TaskCommand {
         return tasks;
     }
 
-    static void errorMessage(String message) {
-        throw new CommandException(Text.of(message));
-        // FIXME if a PlayerTargetSubcommand throws an exception it will not continue with the remaining players.
-        //       revert to sending a red feedback message or check if .fork() can do anything helpful here (see ExecuteCommand?)
-    }
-
     static abstract class Subcommand {
-        private final LiteralArgumentBuilder<ServerCommandSource> subcommandNode;
+        final LiteralArgumentBuilder<ServerCommandSource> subcommandNode;
 
         Subcommand(String name) {
-            subcommandNode = buildSubcommandNode(literal(name));
+            this.subcommandNode = buildSubcommandNode(literal(name));
         }
 
         abstract LiteralArgumentBuilder<ServerCommandSource> buildSubcommandNode(LiteralArgumentBuilder<ServerCommandSource> subcommandNode);
-
-        public LiteralArgumentBuilder<ServerCommandSource> getSubcommandNode() {
-            return subcommandNode;
-        }
     }
 }

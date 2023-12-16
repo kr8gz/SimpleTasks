@@ -1,10 +1,10 @@
-package io.github.kr8gz.simpletasks.command;
+package io.github.kr8gz.simpletasks.commands;
 
 import com.mojang.authlib.GameProfile;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
-import io.github.kr8gz.simpletasks.data.PlayerState;
-import io.github.kr8gz.simpletasks.data.StateManager;
+import io.github.kr8gz.simpletasks.state.PlayerState;
+import io.github.kr8gz.simpletasks.state.StateManager;
 import net.minecraft.command.argument.GameProfileArgumentType;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.command.ServerCommandSource;
@@ -15,10 +15,10 @@ import java.util.Collections;
 import static net.minecraft.server.command.CommandManager.argument;
 import static net.minecraft.server.command.CommandManager.literal;
 
-abstract class PlayerTargetSubcommand extends TaskCommand.Subcommand {
+abstract class PlayerTargetCommand extends TaskCommand.Subcommand {
     static final String ARGUMENT_PLAYER = "player";
 
-    PlayerTargetSubcommand(String name) {
+    PlayerTargetCommand(String name) {
         super(name);
     }
 
@@ -43,7 +43,7 @@ abstract class PlayerTargetSubcommand extends TaskCommand.Subcommand {
                 .sum();
     }
 
-    abstract int executeSingle(ServerCommandSource source, TargetPlayerContext targetPlayerContext);
+    abstract int executeSingle(ServerCommandSource source, TargetPlayerContext target);
 
     static class TargetPlayerContext {
         final PlayerEntity player;
@@ -51,9 +51,9 @@ abstract class PlayerTargetSubcommand extends TaskCommand.Subcommand {
         final String name;
         final boolean isCommandSource;
 
-        TargetPlayerContext(CommandContext<ServerCommandSource> context, GameProfile targetProfile) {
-            var source = context.getSource();
-            var server = source.getServer();
+        TargetPlayerContext(CommandContext<ServerCommandSource> commandContext, GameProfile targetProfile) {
+            var commandSource = commandContext.getSource();
+            var server = commandSource.getServer();
 
             this.name = targetProfile.getName();
             var targetUuid = targetProfile.getId();
@@ -61,7 +61,7 @@ abstract class PlayerTargetSubcommand extends TaskCommand.Subcommand {
             this.player = server.getPlayerManager().getPlayer(targetUuid);
             this.playerState = StateManager.getPlayerState(server, targetUuid);
 
-            var sourcePlayer = source.getPlayer();
+            var sourcePlayer = commandSource.getPlayer();
             this.isCommandSource = sourcePlayer != null && sourcePlayer.getGameProfile() == targetProfile;
         }
     }

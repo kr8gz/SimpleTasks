@@ -1,4 +1,4 @@
-package io.github.kr8gz.simpletasks.data;
+package io.github.kr8gz.simpletasks.state;
 
 import com.mojang.authlib.GameProfile;
 import io.github.kr8gz.simpletasks.SimpleTasks;
@@ -55,7 +55,8 @@ public class StateManager extends PersistentState {
                     .filter(Optional::isPresent)
                     .map(Optional::get)
                     .collect(Collectors.toSet());
-        } catch (IOException e) {
+        }
+        catch (IOException e) {
             SimpleTasks.LOGGER.error("Exception while getting server game profiles:", e);
             throw new RuntimeException(e);
         }

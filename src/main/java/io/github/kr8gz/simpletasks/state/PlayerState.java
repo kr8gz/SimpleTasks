@@ -1,17 +1,15 @@
-package io.github.kr8gz.simpletasks.data;
+package io.github.kr8gz.simpletasks.state;
 
 import net.minecraft.nbt.NbtCompound;
-import org.apache.logging.log4j.util.TriConsumer;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
-import java.util.function.BiFunction;
 
 public class PlayerState {
     private final Set<Entry<?>> entries = new HashSet<>();
     private final StateManager stateManager;
 
-    public PlayerState(StateManager stateManager) {
+    PlayerState(StateManager stateManager) {
         this.stateManager = stateManager;
     }
 
@@ -20,10 +18,21 @@ public class PlayerState {
         private final T defaultValue;
         private T value;
 
-        private final TriConsumer<NbtCompound, String, T> writer;
-        private final BiFunction<NbtCompound, String, T> reader;
+        @FunctionalInterface
+        private interface NbtWriter<T> {
+            void write(NbtCompound tag, String key, T value);
+        }
 
-        Entry(String key, T defaultValue, TriConsumer<NbtCompound, String, T> writer, BiFunction<NbtCompound, String, T> reader) {
+        private final NbtWriter<T> writer;
+
+        @FunctionalInterface
+        private interface NbtReader<T> {
+            T read(NbtCompound tag, String key);
+        }
+
+        private final NbtReader<T> reader;
+
+        Entry(String key, T defaultValue, NbtWriter<T> writer, NbtReader<T> reader) {
             this.key = key;
             this.value = this.defaultValue = defaultValue;
 
@@ -43,11 +52,11 @@ public class PlayerState {
         }
 
         void writeNbt(NbtCompound tag) {
-            writer.accept(tag, key, value);
+            writer.write(tag, key, value);
         }
 
         void readNbt(NbtCompound tag) {
-            value = tag.contains(key) ? reader.apply(tag, key) : defaultValue;
+            value = tag.contains(key) ? reader.read(tag, key) : defaultValue;
         }
     }
 
@@ -68,6 +77,5 @@ public class PlayerState {
     }
 
     public Entry<String> task = new Entry<>("task", "", NbtCompound::putString, NbtCompound::getString);
-
     public Entry<Boolean> hasSeenTask = new Entry<>("hasSeenTask", true, NbtCompound::putBoolean, NbtCompound::getBoolean);
 }
