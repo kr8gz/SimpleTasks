@@ -11,14 +11,11 @@ import net.minecraft.util.Formatting;
 
 import java.util.List;
 
-class TaskListSubcommand extends TaskCommand.Subcommand {
-    TaskListSubcommand() {
-        super("list");
-    }
+import static net.minecraft.server.command.CommandManager.literal;
 
-    @Override
-    LiteralArgumentBuilder<ServerCommandSource> buildSubcommandNode(LiteralArgumentBuilder<ServerCommandSource> subcommandNode) {
-        return subcommandNode
+class TaskListSubcommand {
+    LiteralArgumentBuilder<ServerCommandSource> buildCommandNode() {
+        return literal("list")
                 .requires(source -> source.hasPermissionLevel(2))
                 .executes(TaskListSubcommand::execute);
     }

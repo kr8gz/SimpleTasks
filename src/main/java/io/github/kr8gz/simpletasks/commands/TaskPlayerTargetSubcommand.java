@@ -15,22 +15,23 @@ import java.util.Collections;
 import static net.minecraft.server.command.CommandManager.argument;
 import static net.minecraft.server.command.CommandManager.literal;
 
-abstract class TaskPlayerTargetSubcommand extends TaskCommand.Subcommand {
+abstract class TaskPlayerTargetSubcommand {
     static final String ARGUMENT_PLAYER = "player";
 
-    TaskPlayerTargetSubcommand(String name) {
-        super(name);
+    final String name;
+
+    public TaskPlayerTargetSubcommand(String name) {
+        this.name = name;
     }
 
-    @Override
-    LiteralArgumentBuilder<ServerCommandSource> buildSubcommandNode(LiteralArgumentBuilder<ServerCommandSource> subcommandNode) {
+    LiteralArgumentBuilder<ServerCommandSource> buildCommandNode() {
         var profileSelectorArgument = argument(ARGUMENT_PLAYER, GameProfileArgumentType.gameProfile())
                 .executes(context -> execute(context, GameProfileArgumentType.getProfileArgument(context, ARGUMENT_PLAYER)));
 
         var allServerProfilesArgument = literal("*")
                 .executes(context -> execute(context, StateManager.getAllServerProfiles(context.getSource().getServer())));
 
-        return subcommandNode
+        return literal(name)
                 .requires(source -> source.hasPermissionLevel(2))
                 .executes(context -> execute(context, Collections.singleton(context.getSource().getPlayerOrThrow().getGameProfile())))
                 .then(profileSelectorArgument)

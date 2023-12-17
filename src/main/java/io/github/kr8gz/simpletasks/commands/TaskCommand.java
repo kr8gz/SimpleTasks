@@ -1,7 +1,6 @@
 package io.github.kr8gz.simpletasks.commands;
 
 import com.mojang.brigadier.CommandDispatcher;
-import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import io.github.kr8gz.simpletasks.config.SimpleTasksConfig;
 import io.github.kr8gz.simpletasks.state.PlayerState;
 import io.github.kr8gz.simpletasks.state.StateManager;
@@ -17,19 +16,21 @@ import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static net.minecraft.server.command.CommandManager.*;
+import static net.minecraft.server.command.CommandManager.literal;
 
 class TaskCommand implements CommandRegistrationCallback {
     @Override
     public void register(CommandDispatcher<ServerCommandSource> dispatcher, CommandRegistryAccess registryAccess, CommandManager.RegistrationEnvironment environment) {
         dispatcher.register(literal("task")
-                .then(new TaskViewSubcommand().subcommandNode)
-                .then(new TaskChangeSubcommand().subcommandNode)
-                .then(new TaskClearSubcommand().subcommandNode)
-                .then(new TaskListSubcommand().subcommandNode));
+                .executes(context -> new TaskViewSubcommand().execute(context, Collections.singleton(context.getSource().getPlayerOrThrow().getGameProfile())))
+                .then(new TaskViewSubcommand().buildCommandNode())
+                .then(new TaskChangeSubcommand().buildCommandNode())
+                .then(new TaskClearSubcommand().buildCommandNode())
+                .then(new TaskListSubcommand().buildCommandNode()));
 
         ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
             var playerState = StateManager.getPlayerState(server, handler.player.getUuid());
@@ -66,15 +67,5 @@ class TaskCommand implements CommandRegistrationCallback {
             tasks.removeAll(assignedTasks);
         }
         return tasks;
-    }
-
-    static abstract class Subcommand {
-        final LiteralArgumentBuilder<ServerCommandSource> subcommandNode;
-
-        Subcommand(String name) {
-            this.subcommandNode = buildSubcommandNode(literal(name));
-        }
-
-        abstract LiteralArgumentBuilder<ServerCommandSource> buildSubcommandNode(LiteralArgumentBuilder<ServerCommandSource> subcommandNode);
     }
 }
