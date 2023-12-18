@@ -15,8 +15,8 @@ public class PlayerState {
 
     public class Entry<T> {
         private final String key;
-        private final T defaultValue;
-        private T value;
+        @NotNull private final T defaultValue;
+        @NotNull private T value;
 
         @FunctionalInterface
         private interface NbtWriter<T> {
@@ -32,9 +32,10 @@ public class PlayerState {
 
         private final NbtReader<T> reader;
 
-        private Entry(String key, T defaultValue, NbtWriter<T> writer, NbtReader<T> reader) {
+        private Entry(String key, @NotNull T defaultValue,
+                      NbtWriter<T> writer, NbtReader<T> reader) {
             this.key = key;
-            this.value = this.defaultValue = defaultValue;
+            this.value = this.defaultValue = requireNonNull(defaultValue);
 
             this.writer = writer;
             this.reader = reader;
@@ -42,12 +43,17 @@ public class PlayerState {
             entries.add(this);
         }
 
+        private T requireNonNull(T value) {
+            return Objects.requireNonNull(value, "NBT data must not be null");
+        }
+
+        @NotNull
         public T get() {
             return this.value;
         }
 
         public void set(@NotNull T value) {
-            this.value = Objects.requireNonNull(value, "NBT data must not be null");
+            this.value = requireNonNull(value);
             stateManager.markDirty();
         }
 
@@ -79,7 +85,7 @@ public class PlayerState {
     public final Entry<String> currentTask = new Entry<>("task", "", NbtCompound::putString, NbtCompound::getString) {
         @Override
         public void set(@NotNull String value) {
-            previousTask.set(this.get());
+            previousTask.value = this.get(); // current task is guaranteed non-null
             super.set(value);
         }
     };
