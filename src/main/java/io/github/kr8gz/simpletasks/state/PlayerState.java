@@ -82,20 +82,6 @@ public class PlayerState {
         return playerState;
     }
 
-    public final Entry<String> currentTask = new Entry<>("task", "", NbtCompound::putString, NbtCompound::getString) {
-        @Override
-        public void set(@NotNull String value) {
-            previousTask.value = this.get(); // current task is guaranteed non-null
-            super.set(value);
-        }
-    };
-
-    public final Entry<String> previousTask = new Entry<>("previousTask", "", NbtCompound::putString, NbtCompound::getString) {
-        @Override
-        public void set(@NotNull String value) {
-            throw new UnsupportedOperationException("set currentTask instead");
-        }
-    };
-
-    public final Entry<Boolean> hasSeenTask = new Entry<>("hasSeenTask", true, NbtCompound::putBoolean, NbtCompound::getBoolean);
+    public final Entry<String> currentTask = new Entry<>("currentTask", "", NbtCompound::putString, NbtCompound::getString);
+    public final Entry<String> lastSeenTask = new Entry<>("lastSeenTask", "", NbtCompound::putString, NbtCompound::getString);
 }

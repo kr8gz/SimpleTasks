@@ -35,7 +35,7 @@ public class TaskCommand implements CommandRegistrationCallback {
 
         ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
             var playerState = StateManager.getPlayerState(server, handler.player.getUuid());
-            if (!playerState.hasSeenTask.get()) {
+            if (!playerState.lastSeenTask.get().equals(playerState.currentTask.get())) {
                 notifyPlayerTaskChanged(handler.player, playerState);
             }
         });
@@ -45,7 +45,8 @@ public class TaskCommand implements CommandRegistrationCallback {
         var isPlayerOnline = player != null;
         var newTask = playerState.currentTask.get();
 
-        if (isPlayerOnline && !newTask.equals(playerState.previousTask.get())) {
+        if (isPlayerOnline && !newTask.equals(playerState.lastSeenTask.get())) {
+            playerState.lastSeenTask.set(newTask);
             // TODO configurable notification sounds
             if (newTask.isEmpty()) {
                 player.sendMessage(Text.literal("Your task was cleared.").formatted(Formatting.YELLOW));
@@ -56,7 +57,6 @@ public class TaskCommand implements CommandRegistrationCallback {
                 player.playSound(SoundEvents.BLOCK_CONDUIT_ACTIVATE, SoundCategory.MASTER, 1.0f, 1.0f);
             }
         }
-        playerState.hasSeenTask.set(isPlayerOnline);
     }
 
     public static List<String> getAvailableTasks(SimpleTasksConfig config, ServerCommandSource source) {
