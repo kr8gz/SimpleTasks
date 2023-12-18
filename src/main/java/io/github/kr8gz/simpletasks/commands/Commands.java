@@ -1,5 +1,6 @@
 package io.github.kr8gz.simpletasks.commands;
 
+import io.github.kr8gz.simpletasks.commands.task.TaskCommand;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.minecraft.command.CommandException;
 import net.minecraft.text.Text;

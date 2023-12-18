@@ -1,8 +1,9 @@
-package io.github.kr8gz.simpletasks.commands;
+package io.github.kr8gz.simpletasks.commands.task;
 
 import com.mojang.authlib.GameProfile;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
+import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import io.github.kr8gz.simpletasks.state.PlayerState;
 import io.github.kr8gz.simpletasks.state.StateManager;
 import net.minecraft.command.argument.GameProfileArgumentType;
@@ -15,36 +16,39 @@ import java.util.Collections;
 import static net.minecraft.server.command.CommandManager.argument;
 import static net.minecraft.server.command.CommandManager.literal;
 
-abstract class TaskPlayerTargetSubcommand {
+abstract class PlayerTargetSubcommand extends TaskCommand.Subcommand {
     static final String ARGUMENT_PLAYER = "player";
 
-    final String name;
-
-    public TaskPlayerTargetSubcommand(String name) {
-        this.name = name;
+    public PlayerTargetSubcommand(String name) {
+        super(name);
     }
 
-    LiteralArgumentBuilder<ServerCommandSource> buildCommandNode() {
+    @Override
+    void buildCommandNode(LiteralArgumentBuilder<ServerCommandSource> commandNodeBuilder) {
         var profileSelectorArgument = argument(ARGUMENT_PLAYER, GameProfileArgumentType.gameProfile())
-                .executes(context -> execute(context, GameProfileArgumentType.getProfileArgument(context, ARGUMENT_PLAYER)));
+                .executes(context -> executeForProfiles(context, GameProfileArgumentType.getProfileArgument(context, ARGUMENT_PLAYER)));
 
         var allServerProfilesArgument = literal("*")
-                .executes(context -> execute(context, StateManager.getAllServerProfiles(context.getSource().getServer())));
+                .executes(context -> executeForProfiles(context, StateManager.getAllServerProfiles(context.getSource().getServer())));
 
-        return literal(name)
+        commandNodeBuilder
                 .requires(source -> source.hasPermissionLevel(2))
-                .executes(context -> execute(context, Collections.singleton(context.getSource().getPlayerOrThrow().getGameProfile())))
+                .executes(this::executeForCommandSource)
                 .then(profileSelectorArgument)
                 .then(allServerProfilesArgument);
     }
 
-    int execute(CommandContext<ServerCommandSource> context, Collection<GameProfile> targetProfiles) {
+    int executeForCommandSource(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+        return executeForProfiles(context, Collections.singleton(context.getSource().getPlayerOrThrow().getGameProfile()));
+    }
+
+    int executeForProfiles(CommandContext<ServerCommandSource> context, Collection<GameProfile> targetProfiles) {
         return targetProfiles.stream()
-                .mapToInt(profile -> executeSingle(context.getSource(), new TargetPlayerContext(context, profile)))
+                .mapToInt(profile -> executeForSingleProfile(context.getSource(), new TargetPlayerContext(context, profile)))
                 .sum();
     }
 
-    abstract int executeSingle(ServerCommandSource source, TargetPlayerContext target);
+    abstract int executeForSingleProfile(ServerCommandSource source, TargetPlayerContext target);
 
     static class TargetPlayerContext {
         final PlayerEntity player;

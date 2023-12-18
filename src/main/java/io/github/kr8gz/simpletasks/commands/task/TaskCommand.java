@@ -1,6 +1,8 @@
-package io.github.kr8gz.simpletasks.commands;
+package io.github.kr8gz.simpletasks.commands.task;
 
 import com.mojang.brigadier.CommandDispatcher;
+import com.mojang.brigadier.builder.LiteralArgumentBuilder;
+import com.mojang.brigadier.tree.CommandNode;
 import io.github.kr8gz.simpletasks.config.SimpleTasksConfig;
 import io.github.kr8gz.simpletasks.state.PlayerState;
 import io.github.kr8gz.simpletasks.state.StateManager;
@@ -16,21 +18,20 @@ import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import static net.minecraft.server.command.CommandManager.literal;
 
-class TaskCommand implements CommandRegistrationCallback {
+public class TaskCommand implements CommandRegistrationCallback {
     @Override
     public void register(CommandDispatcher<ServerCommandSource> dispatcher, CommandRegistryAccess registryAccess, CommandManager.RegistrationEnvironment environment) {
         dispatcher.register(literal("task")
-                .executes(context -> new TaskViewSubcommand().execute(context, Collections.singleton(context.getSource().getPlayerOrThrow().getGameProfile())))
-                .then(new TaskViewSubcommand().buildCommandNode())
-                .then(new TaskChangeSubcommand().buildCommandNode())
-                .then(new TaskClearSubcommand().buildCommandNode())
-                .then(new TaskListSubcommand().buildCommandNode()));
+                .executes(Subcommands.VIEW::executeForCommandSource)
+                .then(Subcommands.VIEW.commandNode)
+                .then(Subcommands.CHANGE.commandNode)
+                .then(Subcommands.CLEAR.commandNode)
+                .then(Subcommands.LIST.commandNode));
 
         ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
             var playerState = StateManager.getPlayerState(server, handler.player.getUuid());
@@ -42,14 +43,16 @@ class TaskCommand implements CommandRegistrationCallback {
 
     public static void notifyPlayerTaskChanged(@Nullable PlayerEntity player, PlayerState playerState) {
         var isPlayerOnline = player != null;
-        if (isPlayerOnline) {
+        var newTask = playerState.currentTask.get();
+
+        if (isPlayerOnline && !newTask.equals(playerState.previousTask.get())) {
             // TODO configurable notification sounds
-            if (playerState.task.get().isEmpty()) {
+            if (newTask.isEmpty()) {
                 player.sendMessage(Text.literal("Your task was cleared.").formatted(Formatting.YELLOW));
                 player.playSound(SoundEvents.BLOCK_NOTE_BLOCK_HARP.value(), SoundCategory.MASTER, 1.0f, 2.0f);
             } else {
                 player.sendMessage(Text.literal("Your task was changed! New task: ").formatted(Formatting.YELLOW)
-                        .append(Text.literal(playerState.task.get()).formatted(Formatting.GREEN)));
+                        .append(Text.literal(newTask).formatted(Formatting.GREEN)));
                 player.playSound(SoundEvents.BLOCK_CONDUIT_ACTIVATE, SoundCategory.MASTER, 1.0f, 1.0f);
             }
         }
@@ -61,11 +64,23 @@ class TaskCommand implements CommandRegistrationCallback {
         if (config.assignUniqueTasks.get()) {
             var playerStates = StateManager.getServerState(source.getServer()).playerStates;
             var assignedTasks = playerStates.values().stream()
-                    .map(playerState -> playerState.task.get())
+                    .map(playerState -> playerState.currentTask.get())
                     .collect(Collectors.toSet());
 
             tasks.removeAll(assignedTasks);
         }
         return tasks;
+    }
+
+    static abstract class Subcommand {
+        final CommandNode<ServerCommandSource> commandNode;
+
+        public Subcommand(String name) {
+            var builder = literal(name);
+            buildCommandNode(builder);
+            this.commandNode = builder.build();
+        }
+
+        abstract void buildCommandNode(LiteralArgumentBuilder<ServerCommandSource> commandNodeBuilder);
     }
 }

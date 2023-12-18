@@ -112,7 +112,7 @@ public class SimpleTasksConfig {
         }
     }
 
-    public final ListEntry<String> tasks = new ListEntry<>("tasks", new ArrayList<>(List.of("Example task")), v -> v instanceof String task && !task.isEmpty());
+    public final ListEntry<String> tasks = new ListEntry<>("tasks", List.of("Example task"), v -> v instanceof String task && !task.isEmpty());
 
     public final Entry<Boolean> assignUniqueTasks = new Entry<>("assignUniqueTasks", false, v -> v instanceof Boolean);
 

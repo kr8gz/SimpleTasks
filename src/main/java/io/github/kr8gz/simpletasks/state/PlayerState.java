@@ -32,7 +32,7 @@ public class PlayerState {
 
         private final NbtReader<T> reader;
 
-        Entry(String key, T defaultValue, NbtWriter<T> writer, NbtReader<T> reader) {
+        private Entry(String key, T defaultValue, NbtWriter<T> writer, NbtReader<T> reader) {
             this.key = key;
             this.value = this.defaultValue = defaultValue;
 
@@ -51,11 +51,11 @@ public class PlayerState {
             stateManager.markDirty();
         }
 
-        void writeNbt(NbtCompound tag) {
+        private void writeNbt(NbtCompound tag) {
             writer.write(tag, key, value);
         }
 
-        void readNbt(NbtCompound tag) {
+        private void readNbt(NbtCompound tag) {
             value = tag.contains(key) ? reader.read(tag, key) : defaultValue;
         }
     }
@@ -76,6 +76,20 @@ public class PlayerState {
         return playerState;
     }
 
-    public Entry<String> task = new Entry<>("task", "", NbtCompound::putString, NbtCompound::getString);
+    public Entry<String> currentTask = new Entry<>("task", "", NbtCompound::putString, NbtCompound::getString) {
+        @Override
+        public void set(@NotNull String value) {
+            previousTask.set(this.get());
+            super.set(value);
+        }
+    };
+
+    public Entry<String> previousTask = new Entry<>("previousTask", "", NbtCompound::putString, NbtCompound::getString) {
+        @Override
+        public void set(@NotNull String value) {
+            throw new UnsupportedOperationException("set currentTask instead");
+        }
+    };
+
     public Entry<Boolean> hasSeenTask = new Entry<>("hasSeenTask", true, NbtCompound::putBoolean, NbtCompound::getBoolean);
 }
