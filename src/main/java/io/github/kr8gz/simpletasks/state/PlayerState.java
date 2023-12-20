@@ -55,6 +55,7 @@ public class PlayerState {
         public void set(@NotNull T value) {
             this.value = requireNonNull(value);
             stateManager.markDirty();
+            shouldSave = true;
         }
 
         private void writeNbt(NbtCompound tag) {
@@ -84,4 +85,6 @@ public class PlayerState {
 
     public final Entry<String> currentTask = new Entry<>("currentTask", "", NbtCompound::putString, NbtCompound::getString);
     public final Entry<String> lastSeenTask = new Entry<>("lastSeenTask", "", NbtCompound::putString, NbtCompound::getString);
+
+    boolean shouldSave;
 }

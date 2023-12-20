@@ -15,6 +15,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class StateManager extends PersistentState {
     public final HashMap<UUID, PlayerState> playerStates = new HashMap<>();
@@ -23,9 +24,13 @@ public class StateManager extends PersistentState {
     public NbtCompound writeNbt(NbtCompound nbt) {
         var playersNbt = new NbtCompound();
 
-        playerStates.forEach((uuid, playerState) -> playersNbt.put(uuid.toString(), playerState.toNbt()));
-        nbt.put("players", playersNbt);
+        playerStates.forEach((uuid, playerState) -> {
+            if (playerState.shouldSave) {
+                playersNbt.put(uuid.toString(), playerState.toNbt());
+            }
+        });
 
+        nbt.put("players", playersNbt);
         return nbt;
     }
 
@@ -46,17 +51,23 @@ public class StateManager extends PersistentState {
 
         // using STATS path instead of PLAYERDATA, since the latter contains an additional backup file for each player
         try (var playerFilePaths = Files.list(server.getSavePath(WorldSavePath.STATS))) {
-            return playerFilePaths
+            var uuidsFromPlayerData = playerFilePaths
                     .map(Path::toFile)
                     .map(File::getName)
                     .map(FilenameUtils::removeExtension)
-                    .map(UUID::fromString)
+                    .map(UUID::fromString);
+
+            var playerStates = getServerState(server).playerStates;
+            var uuidsFromServerState = playerStates.keySet().stream()
+                    .filter(uuid -> playerStates.get(uuid).shouldSave);
+
+            return Stream.concat(uuidsFromPlayerData, uuidsFromServerState)
+                    .unordered()
+                    .distinct()
                     .map(userCache::getByUuid)
                     .filter(Optional::isPresent)
                     .map(Optional::get)
                     .collect(Collectors.toSet());
-
-            // TODO also add UUIDs stored in the StateManager's data file
         }
         catch (IOException e) {
             SimpleTasks.LOGGER.error("Exception while getting server game profiles:", e);
