@@ -55,6 +55,8 @@ public class StateManager extends PersistentState {
                     .filter(Optional::isPresent)
                     .map(Optional::get)
                     .collect(Collectors.toSet());
+
+            // TODO also add UUIDs stored in the StateManager's data file
         }
         catch (IOException e) {
             SimpleTasks.LOGGER.error("Exception while getting server game profiles:", e);

@@ -27,7 +27,7 @@ public class TaskCommand implements CommandRegistrationCallback {
     @Override
     public void register(CommandDispatcher<ServerCommandSource> dispatcher, CommandRegistryAccess registryAccess, CommandManager.RegistrationEnvironment environment) {
         dispatcher.register(literal("task")
-                .executes(Subcommands.VIEW::executeForCommandSource)
+                .executes(Subcommands.VIEW::execute)
                 .then(Subcommands.VIEW.commandNode)
                 .then(Subcommands.CHANGE.commandNode)
                 .then(Subcommands.CLEAR.commandNode)
@@ -75,7 +75,7 @@ public class TaskCommand implements CommandRegistrationCallback {
     static abstract class Subcommand {
         final CommandNode<ServerCommandSource> commandNode;
 
-        public Subcommand(String name) {
+        Subcommand(String name) {
             var builder = literal(name);
             buildCommandNode(builder);
             this.commandNode = builder.build();

@@ -19,7 +19,7 @@ import static net.minecraft.server.command.CommandManager.literal;
 abstract class PlayerTargetSubcommand extends TaskCommand.Subcommand {
     static final String ARGUMENT_PLAYER = "player";
 
-    public PlayerTargetSubcommand(String name) {
+    PlayerTargetSubcommand(String name) {
         super(name);
     }
 
@@ -33,12 +33,12 @@ abstract class PlayerTargetSubcommand extends TaskCommand.Subcommand {
 
         commandNodeBuilder
                 .requires(source -> source.hasPermissionLevel(2))
-                .executes(this::executeForCommandSource)
+                .executes(this::execute)
                 .then(profileSelectorArgument)
                 .then(allServerProfilesArgument);
     }
 
-    int executeForCommandSource(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+    int execute(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         return executeForProfiles(context, Collections.singleton(context.getSource().getPlayerOrThrow().getGameProfile()));
     }
 

@@ -88,7 +88,7 @@ class Subcommands {
 
     static final TaskCommand.Subcommand LIST = new TaskCommand.Subcommand("list") {
         @Override
-        public void buildCommandNode(LiteralArgumentBuilder<ServerCommandSource> commandNodeBuilder) {
+        void buildCommandNode(LiteralArgumentBuilder<ServerCommandSource> commandNodeBuilder) {
             commandNodeBuilder
                     .requires(source -> source.hasPermissionLevel(2))
                     .executes(this::execute);
